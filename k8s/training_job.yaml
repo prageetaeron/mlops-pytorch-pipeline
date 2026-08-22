@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ml-training-job
+  namespace: ml-training
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: trainer
+        image: mlops-train:v1
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "2"
+            memory: "4Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/configs
+        - name: storage
+          mountPath: /app/data
+          subPath: data
+        - name: storage
+          mountPath: /app/checkpoints
+          subPath: checkpoints
+      volumes:
+      - name: config-volume
+        configMap:
+          name: training-config
+      - name: storage
+        persistentVolumeClaim:
+          claimName: mlops-pvc
